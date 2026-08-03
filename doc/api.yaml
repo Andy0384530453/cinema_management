@@ -1,0 +1,186 @@
+openapi: 3.0.3
+info:
+  title: Cinema Management API
+  description: >
+    Spec des 3 premiers endpoints.
+    Rôles: CLIENT, EMPLOYEE, MANAGER.
+  version: 1.0.0
+paths:
+  /movies:
+    put:
+      summary: Créer ou mettre à jour un film
+      description: >
+        Réservé au MANAGER.
+        - CLIENT -> 403
+        - EMPLOYEE -> 403
+        - MANAGER -> 200
+      security:
+        - UserRole: [MANAGER]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Movie'
+      responses:
+        '200':
+          description: Film créé ou mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '403':
+          description: Accès refusé (CLIENT ou EMPLOYEE)
+  /reservations:
+    get:
+      summary: Lister toutes les réservations
+      description: >
+        Réservé au MANAGER et à l'EMPLOYEE.
+        - CLIENT -> 403
+        - EMPLOYEE -> 200
+        - MANAGER -> 200
+      security:
+        - UserRole: [EMPLOYEE, MANAGER]
+      responses:
+        '200':
+          description: Liste des réservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+        '403':
+          description: Accès refusé (CLIENT)
+  /reservationById:
+    get:
+      summary: Récupérer une réservation par son id
+      description: >
+        - CLIENT propriétaire -> 200
+        - CLIENT d'une réservation d'un autre client -> 403
+        - EMPLOYEE -> 200
+        - MANAGER -> 200
+      security:
+        - UserRole: [CLIENT, EMPLOYEE, MANAGER]
+      parameters:
+        - name: idReservation
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Réservation trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '403':
+          description: Réservation d'un autre CLIENT
+        '404':
+          description: Réservation inexistante
+components:
+  securitySchemes:
+    UserRole:
+      type: http
+      scheme: bearer
+  schemas:
+    Movie:
+      type: object
+      required:
+        - idMovie
+        - title
+        - genre
+        - duration
+      properties:
+        idMovie:
+          type: string
+          format: uuid
+        title:
+          type: string
+        genre:
+          $ref: '#/components/schemas/Genre'
+        description:
+          type: string
+        duration:
+          type: string
+          format: duration
+          example: PT2H5M
+    Reservation:
+      type: object
+      required:
+        - idReservation
+        - user
+        - projection
+      properties:
+        idReservation:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        projection:
+          $ref: '#/components/schemas/Projection'
+    User:
+      type: object
+      required:
+        - idUser
+        - firstName
+        - lastName
+        - birthdate
+        - email
+        - password
+        - role
+      properties:
+        idUser:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        birthdate:
+          type: string
+          format: date
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        phone:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+    Projection:
+      type: object
+      required:
+        - idProjection
+        - datetime
+        - seatPrice
+      properties:
+        idProjection:
+          type: string
+          format: uuid
+        datetime:
+          type: string
+          format: date-time
+        seatPrice:
+          type: number
+          format: bigdecimal
+    UserRole:
+      type: string
+      enum:
+        - CLIENT
+        - EMPLOYEE
+        - MANAGER
+    Genre:
+      type: string
+      enum:
+        - THRILLER
+        - ROMANCE
+        - COMEDY
+        - DRAMA
+        - ACTION
+        - SCI-FI
+        - FANTASY
+        - ANIMATION
