@@ -74,4 +74,27 @@ class SecurityServiceTest {
 
     assertThrows(ForbiddenException.class, () -> securityService.requireRole(UserRole.MANAGER));
   }
+
+  @Test
+  void requireAnyRole_withAllowedRole_shouldNotThrow() {
+    mockRequestWithRole("EMPLOYEE");
+
+    assertDoesNotThrow(() -> securityService.requireAnyRole(UserRole.EMPLOYEE, UserRole.MANAGER));
+  }
+
+  @Test
+  void requireAnyRole_withManagerRole_shouldNotThrow() {
+    mockRequestWithRole("MANAGER");
+
+    assertDoesNotThrow(() -> securityService.requireAnyRole(UserRole.EMPLOYEE, UserRole.MANAGER));
+  }
+
+  @Test
+  void requireAnyRole_withClientRole_shouldThrow403() {
+    mockRequestWithRole("CLIENT");
+
+    assertThrows(
+        ForbiddenException.class,
+        () -> securityService.requireAnyRole(UserRole.EMPLOYEE, UserRole.MANAGER));
+  }
 }

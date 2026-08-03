@@ -32,6 +32,16 @@ public class SecurityService {
     }
   }
 
+  public void requireAnyRole(UserRole... allowedRoles) {
+    UserRole currentRole = getCurrentUserRole();
+    for (UserRole allowedRole : allowedRoles) {
+      if (currentRole == allowedRole) {
+        return;
+      }
+    }
+    throw new ForbiddenException("Access denied for role " + currentRole);
+  }
+
   private HttpServletRequest currentRequest() {
     var attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
     if (attributes == null) {
