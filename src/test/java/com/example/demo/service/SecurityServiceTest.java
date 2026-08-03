@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.example.demo.entity.enums.UserRole;
 import com.example.demo.exception.ForbiddenException;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -21,9 +22,16 @@ class SecurityServiceTest {
   }
 
   private void mockRequestWithRole(String role) {
+    mockRequestWithRoleAndId(role, null);
+  }
+
+  private void mockRequestWithRoleAndId(String role, String userId) {
     MockHttpServletRequest request = new MockHttpServletRequest();
     if (role != null) {
       request.addHeader("X-User-Role", role);
+    }
+    if (userId != null) {
+      request.addHeader("X-User-Id", userId);
     }
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
   }
@@ -96,5 +104,27 @@ class SecurityServiceTest {
     assertThrows(
         ForbiddenException.class,
         () -> securityService.requireAnyRole(UserRole.EMPLOYEE, UserRole.MANAGER));
+  }
+
+  @Test
+  void getCurrentUserId_withHeader_shouldReturnUuid() {
+    UUID id = UUID.randomUUID();
+    mockRequestWithRoleAndId("CLIENT", id.toString());
+
+    assertEquals(id, securityService.getCurrentUserId());
+  }
+
+  @Test
+  void getCurrentUserId_withoutHeader_shouldThrow403() {
+    mockRequestWithRoleAndId("CLIENT", null);
+
+    assertThrows(ForbiddenException.class, () -> securityService.getCurrentUserId());
+  }
+
+  @Test
+  void getCurrentUserId_withInvalidUuid_shouldThrow403() {
+    mockRequestWithRoleAndId("CLIENT", "not-a-uuid");
+
+    assertThrows(ForbiddenException.class, () -> securityService.getCurrentUserId());
   }
 }

@@ -15,6 +15,7 @@ import com.example.demo.entity.enums.Genre;
 import com.example.demo.entity.enums.UserRole;
 import com.example.demo.exception.ForbiddenException;
 import com.example.demo.exception.GlobalExceptionHandler;
+import com.example.demo.exception.NotFoundException;
 import com.example.demo.service.ReservationService;
 import com.example.demo.service.SecurityService;
 import java.math.BigDecimal;
@@ -121,5 +122,93 @@ class ReservationControllerTest {
     when(reservationService.findAll()).thenThrow(new RuntimeException("boom"));
 
     mockMvc.perform(get("/reservations")).andExpect(status().isInternalServerError());
+  }
+
+  @Test
+  void getReservationById_withManagerRole_shouldReturn200() throws Exception {
+    when(reservationService.findById(reservationDetail.getIdReservation()))
+        .thenReturn(reservationDetail);
+    when(securityService.getCurrentUserRole()).thenReturn(UserRole.MANAGER);
+
+    mockMvc
+        .perform(
+            get("/reservationById")
+                .param("idReservation", reservationDetail.getIdReservation().toString()))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.idReservation").value(reservationDetail.getIdReservation().toString()))
+        .andExpect(jsonPath("$.user.firstName").value("John"))
+        .andExpect(jsonPath("$.projection.movie.title").value("Inception"));
+  }
+
+  @Test
+  void getReservationById_withEmployeeRole_shouldReturn200() throws Exception {
+    when(reservationService.findById(reservationDetail.getIdReservation()))
+        .thenReturn(reservationDetail);
+    when(securityService.getCurrentUserRole()).thenReturn(UserRole.EMPLOYEE);
+
+    mockMvc
+        .perform(
+            get("/reservationById")
+                .param("idReservation", reservationDetail.getIdReservation().toString()))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void getReservationById_withOwnerClient_shouldReturn200() throws Exception {
+    when(reservationService.findById(reservationDetail.getIdReservation()))
+        .thenReturn(reservationDetail);
+    when(securityService.getCurrentUserRole()).thenReturn(UserRole.CLIENT);
+    when(securityService.getCurrentUserId()).thenReturn(reservationDetail.getUser().getIdUser());
+
+    mockMvc
+        .perform(
+            get("/reservationById")
+                .param("idReservation", reservationDetail.getIdReservation().toString()))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void getReservationById_withOtherClient_shouldThrow403() throws Exception {
+    when(reservationService.findById(reservationDetail.getIdReservation()))
+        .thenReturn(reservationDetail);
+    when(securityService.getCurrentUserRole()).thenReturn(UserRole.CLIENT);
+    when(securityService.getCurrentUserId()).thenReturn(UUID.randomUUID());
+
+    mockMvc
+        .perform(
+            get("/reservationById")
+                .param("idReservation", reservationDetail.getIdReservation().toString()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void getReservationById_withNonExistingReservation_shouldThrow404() throws Exception {
+    UUID id = UUID.randomUUID();
+    when(reservationService.findById(id))
+        .thenThrow(new NotFoundException("Reservation with id " + id + " not found"));
+
+    mockMvc
+        .perform(get("/reservationById").param("idReservation", id.toString()))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void getReservationById_withInvalidUUID_shouldThrow400() throws Exception {
+    mockMvc
+        .perform(get("/reservationById").param("idReservation", "1"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void getReservationById_whenServiceFails_shouldThrow500() throws Exception {
+    when(reservationService.findById(reservationDetail.getIdReservation()))
+        .thenThrow(new RuntimeException("boom"));
+
+    mockMvc
+        .perform(
+            get("/reservationById")
+                .param("idReservation", reservationDetail.getIdReservation().toString()))
+        .andExpect(status().isInternalServerError());
   }
 }

@@ -3,13 +3,16 @@ package com.example.demo.endpoint.rest.controller;
 import com.example.demo.dto.ReservationDetail;
 import com.example.demo.entity.enums.UserRole;
 import com.example.demo.exception.ForbiddenException;
+import com.example.demo.exception.NotFoundException;
 import com.example.demo.service.ReservationService;
 import com.example.demo.service.SecurityService;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -29,5 +32,27 @@ public class ReservationController {
     } catch (Exception e) {
       return ResponseEntity.internalServerError().build();
     }
+  }
+
+  @GetMapping("/reservationById")
+  public ResponseEntity<ReservationDetail> getReservationById(@RequestParam UUID idReservation) {
+    try {
+      ReservationDetail detail = reservationService.findById(idReservation);
+      UserRole role = securityService.getCurrentUserRole();
+      if (role == UserRole.CLIENT && !isOwner(detail, securityService.getCurrentUserId())) {
+        throw new ForbiddenException("Access denied: not the owner of this reservation");
+      }
+      return ResponseEntity.ok(detail);
+    } catch (ForbiddenException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    } catch (NotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  private boolean isOwner(ReservationDetail detail, UUID currentUserId) {
+    return detail.getUser() != null && currentUserId.equals(detail.getUser().getIdUser());
   }
 }

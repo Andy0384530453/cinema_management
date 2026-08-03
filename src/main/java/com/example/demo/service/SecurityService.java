@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.entity.enums.UserRole;
 import com.example.demo.exception.ForbiddenException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -11,6 +12,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class SecurityService {
 
   private static final String ROLE_HEADER = "X-User-Role";
+  private static final String USER_ID_HEADER = "X-User-Id";
 
   public UserRole getCurrentUserRole() {
     HttpServletRequest request = currentRequest();
@@ -40,6 +42,19 @@ public class SecurityService {
       }
     }
     throw new ForbiddenException("Access denied for role " + currentRole);
+  }
+
+  public UUID getCurrentUserId() {
+    HttpServletRequest request = currentRequest();
+    String userId = request.getHeader(USER_ID_HEADER);
+    if (userId == null || userId.isBlank()) {
+      throw new ForbiddenException("No authenticated user");
+    }
+    try {
+      return UUID.fromString(userId);
+    } catch (IllegalArgumentException e) {
+      throw new ForbiddenException("Invalid user id: " + userId);
+    }
   }
 
   private HttpServletRequest currentRequest() {
