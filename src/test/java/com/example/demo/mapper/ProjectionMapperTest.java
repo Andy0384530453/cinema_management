@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.example.demo.dto.ProjectionDetail;
-import com.example.demo.entity.Movie;
-import com.example.demo.entity.Projection;
-import com.example.demo.entity.Room;
-import com.example.demo.entity.enums.Genre;
+import com.example.demo.model.Genre;
+import com.example.demo.model.Movie;
+import com.example.demo.model.Projection;
+import com.example.demo.model.Room;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;

@@ -5,9 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.example.demo.dto.ReservationDetail;
-import com.example.demo.entity.Reservation;
+import com.example.demo.entity.JReservation;
 import com.example.demo.exception.NotFoundException;
+import com.example.demo.mapper.JReservationMapper;
 import com.example.demo.mapper.ReservationMapper;
+import com.example.demo.model.Reservation;
 import com.example.demo.repository.ReservationRepository;
 import java.util.List;
 import java.util.Optional;
@@ -24,14 +26,19 @@ class ReservationServiceTest {
 
   @Mock private ReservationMapper reservationMapper;
 
+  @Mock private JReservationMapper jReservationMapper;
+
   @InjectMocks private ReservationService reservationService;
 
   @Test
   void findAll_shouldReturnMappedReservations() {
-    Reservation reservation = Reservation.builder().idReservation(UUID.randomUUID()).build();
+    JReservation jReservation = JReservation.builder().idReservation(UUID.randomUUID()).build();
+    Reservation reservation =
+        Reservation.builder().idReservation(jReservation.getIdReservation()).build();
     ReservationDetail detail =
         ReservationDetail.builder().idReservation(reservation.getIdReservation()).build();
-    when(reservationRepository.findAll()).thenReturn(List.of(reservation));
+    when(reservationRepository.findAll()).thenReturn(List.of(jReservation));
+    when(jReservationMapper.toDomain(jReservation)).thenReturn(reservation);
     when(reservationMapper.toDetail(reservation)).thenReturn(detail);
 
     List<ReservationDetail> result = reservationService.findAll();
@@ -49,9 +56,11 @@ class ReservationServiceTest {
   @Test
   void findById_withExistingReservation_shouldReturnMappedDetail() {
     UUID id = UUID.randomUUID();
+    JReservation jReservation = JReservation.builder().idReservation(id).build();
     Reservation reservation = Reservation.builder().idReservation(id).build();
     ReservationDetail detail = ReservationDetail.builder().idReservation(id).build();
-    when(reservationRepository.findById(id)).thenReturn(Optional.of(reservation));
+    when(reservationRepository.findById(id)).thenReturn(Optional.of(jReservation));
+    when(jReservationMapper.toDomain(jReservation)).thenReturn(reservation);
     when(reservationMapper.toDetail(reservation)).thenReturn(detail);
 
     ReservationDetail result = reservationService.findById(id);

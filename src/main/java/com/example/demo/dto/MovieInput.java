@@ -1,6 +1,6 @@
 package com.example.demo.dto;
 
-import com.example.demo.entity.enums.Genre;
+import com.example.demo.model.Genre;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.AllArgsConstructor;

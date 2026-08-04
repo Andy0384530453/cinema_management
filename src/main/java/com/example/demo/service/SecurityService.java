@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.enums.UserRole;
 import com.example.demo.exception.ForbiddenException;
+import com.example.demo.model.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.UUID;
 import org.springframework.stereotype.Service;

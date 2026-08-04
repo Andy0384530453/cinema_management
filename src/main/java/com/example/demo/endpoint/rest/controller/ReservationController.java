@@ -1,9 +1,9 @@
 package com.example.demo.endpoint.rest.controller;
 
 import com.example.demo.dto.ReservationDetail;
-import com.example.demo.entity.enums.UserRole;
 import com.example.demo.exception.ForbiddenException;
 import com.example.demo.exception.NotFoundException;
+import com.example.demo.model.UserRole;
 import com.example.demo.service.ReservationService;
 import com.example.demo.service.SecurityService;
 import java.util.List;

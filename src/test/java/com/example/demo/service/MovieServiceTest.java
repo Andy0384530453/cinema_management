@@ -1,34 +1,35 @@
 package com.example.demo.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.demo.dto.MovieDetail;
 import com.example.demo.dto.MovieInput;
-import com.example.demo.entity.Movie;
-import com.example.demo.entity.enums.Genre;
+import com.example.demo.entity.JMovie;
 import com.example.demo.exception.BadRequestException;
+import com.example.demo.mapper.JMovieMapper;
 import com.example.demo.mapper.MovieMapper;
+import com.example.demo.model.Genre;
+import com.example.demo.model.Movie;
 import com.example.demo.repository.MovieRepository;
 import java.time.Duration;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class MovieServiceTest {
+
   @Mock private MovieRepository movieRepository;
 
   @Mock private MovieMapper movieMapper;
+
+  @Mock private JMovieMapper jMovieMapper;
 
   @InjectMocks private MovieService movieService;
 
@@ -43,55 +44,24 @@ class MovieServiceTest {
   }
 
   @Test
-  void save_withNewMovie_shouldCreateAndReturnDetail() {
+  void save_shouldMapInputToEntityThenBackToDetail() {
     MovieInput input = validInput();
-    Movie saved = Movie.builder().idMovie(input.getIdMovie()).build();
+    Movie domain = Movie.builder().idMovie(input.getIdMovie()).build();
+    JMovie jpa = JMovie.builder().idMovie(input.getIdMovie()).build();
+    JMovie savedJpa = JMovie.builder().idMovie(input.getIdMovie()).build();
+    Movie savedDomain = Movie.builder().idMovie(input.getIdMovie()).build();
     MovieDetail detail = MovieDetail.builder().idMovie(input.getIdMovie()).build();
-    when(movieRepository.findById(input.getIdMovie())).thenReturn(Optional.empty());
-    when(movieRepository.save(any(Movie.class))).thenReturn(saved);
-    when(movieMapper.toDetail(saved)).thenReturn(detail);
+
+    when(movieMapper.toDomain(input)).thenReturn(domain);
+    when(jMovieMapper.toJpa(domain)).thenReturn(jpa);
+    when(movieRepository.save(jpa)).thenReturn(savedJpa);
+    when(jMovieMapper.toDomain(savedJpa)).thenReturn(savedDomain);
+    when(movieMapper.toDetail(savedDomain)).thenReturn(detail);
 
     MovieDetail result = movieService.save(input);
 
     assertEquals(detail, result);
-    ArgumentCaptor<Movie> captor = ArgumentCaptor.forClass(Movie.class);
-    verify(movieRepository).save(captor.capture());
-    assertEquals(input.getIdMovie(), captor.getValue().getIdMovie());
-    assertEquals("Inception", captor.getValue().getTitle());
-    assertEquals(Genre.ACTION, captor.getValue().getGenre());
-  }
-
-  @Test
-  void save_withNewMovieAndNullId_shouldGenerateUuid() {
-    MovieInput input = validInput();
-    input.setIdMovie(null);
-    Movie saved = Movie.builder().idMovie(UUID.randomUUID()).build();
-    when(movieRepository.findById(null)).thenReturn(Optional.empty());
-    when(movieRepository.save(any(Movie.class))).thenReturn(saved);
-    when(movieMapper.toDetail(saved)).thenReturn(MovieDetail.builder().build());
-
-    movieService.save(input);
-
-    ArgumentCaptor<Movie> captor = ArgumentCaptor.forClass(Movie.class);
-    verify(movieRepository).save(captor.capture());
-    assertNotNull(captor.getValue().getIdMovie());
-  }
-
-  @Test
-  void save_withExistingMovie_shouldUpdateAndReturnDetail() {
-    MovieInput input = validInput();
-    Movie existing = Movie.builder().idMovie(input.getIdMovie()).title("Old title").build();
-    MovieDetail detail = MovieDetail.builder().idMovie(input.getIdMovie()).build();
-    when(movieRepository.findById(input.getIdMovie())).thenReturn(Optional.of(existing));
-    when(movieRepository.save(existing)).thenReturn(existing);
-    when(movieMapper.toDetail(existing)).thenReturn(detail);
-
-    MovieDetail result = movieService.save(input);
-
-    assertEquals(detail, result);
-    assertEquals("Inception", existing.getTitle());
-    assertEquals(Genre.ACTION, existing.getGenre());
-    assertEquals(Duration.ofHours(2).plusMinutes(28), existing.getDuration());
+    verify(movieRepository).save(jpa);
   }
 
   @Test

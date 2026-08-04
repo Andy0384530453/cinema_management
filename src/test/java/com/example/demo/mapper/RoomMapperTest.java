@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.example.demo.dto.RoomDetail;
-import com.example.demo.entity.Room;
+import com.example.demo.model.Room;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 

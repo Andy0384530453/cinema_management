@@ -1,6 +1,5 @@
-package com.example.demo.dto;
+package com.example.demo.model;
 
-import com.example.demo.model.Genre;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -14,7 +13,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MovieDetail {
+public class Movie {
+
   private UUID idMovie;
   private String title;
   private Genre genre;

@@ -2,11 +2,11 @@ package com.example.demo.service;
 
 import com.example.demo.dto.MovieDetail;
 import com.example.demo.dto.MovieInput;
-import com.example.demo.entity.Movie;
 import com.example.demo.exception.BadRequestException;
+import com.example.demo.mapper.JMovieMapper;
 import com.example.demo.mapper.MovieMapper;
+import com.example.demo.model.Movie;
 import com.example.demo.repository.MovieRepository;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,15 +16,13 @@ public class MovieService {
 
   private final MovieRepository movieRepository;
   private final MovieMapper movieMapper;
+  private final JMovieMapper jMovieMapper;
 
   public MovieDetail save(MovieInput input) {
     validate(input);
-    Movie movie =
-        movieRepository
-            .findById(input.getIdMovie())
-            .map(existing -> update(existing, input))
-            .orElseGet(() -> create(input));
-    return movieMapper.toDetail(movieRepository.save(movie));
+    Movie movie = movieMapper.toDomain(input);
+    Movie saved = jMovieMapper.toDomain(movieRepository.save(jMovieMapper.toJpa(movie)));
+    return movieMapper.toDetail(saved);
   }
 
   private void validate(MovieInput input) {
@@ -37,23 +35,5 @@ public class MovieService {
     if (input.getDuration() == null) {
       throw new BadRequestException("Duration is required");
     }
-  }
-
-  private Movie create(MovieInput input) {
-    return Movie.builder()
-        .idMovie(input.getIdMovie() != null ? input.getIdMovie() : UUID.randomUUID())
-        .title(input.getTitle())
-        .genre(input.getGenre())
-        .description(input.getDescription())
-        .duration(input.getDuration())
-        .build();
-  }
-
-  private Movie update(Movie existing, MovieInput input) {
-    existing.setTitle(input.getTitle());
-    existing.setGenre(input.getGenre());
-    existing.setDescription(input.getDescription());
-    existing.setDuration(input.getDuration());
-    return existing;
   }
 }

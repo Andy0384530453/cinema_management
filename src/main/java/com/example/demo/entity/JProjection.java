@@ -4,7 +4,11 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -13,7 +17,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Table(name = "projection")
-public class Projection {
+public class JProjection {
 
   @Id private UUID idProjection;
 
@@ -25,9 +29,9 @@ public class Projection {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "id_movie")
-  private Movie movie;
+  private JMovie movie;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "id_room")
-  private Room room;
+  private JRoom room;
 }
