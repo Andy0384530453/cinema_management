@@ -1,10 +1,14 @@
 package com.example.demo.entity;
 
-import com.example.demo.entity.enums.Genre;
+import com.example.demo.model.Genre;
 import jakarta.persistence.*;
 import java.time.Duration;
 import java.util.UUID;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -13,7 +17,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Table(name = "movie")
-public class Movie {
+public class JMovie {
 
   @Id private UUID idMovie;
 

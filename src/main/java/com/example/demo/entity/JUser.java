@@ -1,10 +1,14 @@
 package com.example.demo.entity;
 
-import com.example.demo.entity.enums.UserRole;
+import com.example.demo.model.UserRole;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.UUID;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -13,7 +17,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Table(name = "app_user")
-public class User {
+public class JUser {
 
   @Id private UUID idUser;
 

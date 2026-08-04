@@ -9,9 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.demo.dto.MovieDetail;
 import com.example.demo.dto.MovieInput;
-import com.example.demo.entity.Movie;
-import com.example.demo.entity.enums.Genre;
-import com.example.demo.entity.enums.UserRole;
+import com.example.demo.model.Genre;
+import com.example.demo.model.Movie;
+import com.example.demo.model.UserRole;
 import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.ForbiddenException;
 import com.example.demo.exception.GlobalExceptionHandler;
