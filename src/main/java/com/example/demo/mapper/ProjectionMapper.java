@@ -1,7 +1,7 @@
 package com.example.demo.mapper;
 
 import com.example.demo.dto.ProjectionDetail;
-import com.example.demo.entity.Projection;
+import com.example.demo.model.Projection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

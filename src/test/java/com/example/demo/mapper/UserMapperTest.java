@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.example.demo.dto.UserDetail;
-import com.example.demo.entity.User;
-import com.example.demo.entity.enums.UserRole;
+import com.example.demo.model.User;
+import com.example.demo.model.UserRole;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

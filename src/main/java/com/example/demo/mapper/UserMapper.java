@@ -1,7 +1,7 @@
 package com.example.demo.mapper;
 
 import com.example.demo.dto.UserDetail;
-import com.example.demo.entity.User;
+import com.example.demo.model.User;
 import org.springframework.stereotype.Component;
 
 @Component

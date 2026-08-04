@@ -1,7 +1,7 @@
 package com.example.demo.mapper;
 
 import com.example.demo.dto.RoomDetail;
-import com.example.demo.entity.Room;
+import com.example.demo.model.Room;
 import org.springframework.stereotype.Component;
 
 @Component
