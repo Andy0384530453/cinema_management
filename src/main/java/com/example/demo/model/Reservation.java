@@ -1,5 +1,8 @@
 package com.example.demo.model;
 
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,4 +20,7 @@ public class Reservation {
   private UUID idReservation;
   private User user;
   private Projection projection;
+  private Instant createdAt;
+
+  @Builder.Default private Set<Seat> seats = new HashSet<>();
 }
