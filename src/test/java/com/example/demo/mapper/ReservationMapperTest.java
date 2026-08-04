@@ -2,9 +2,11 @@ package com.example.demo.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.example.demo.dto.ReservationDetail;
+import com.example.demo.dto.ReservationInput;
 import com.example.demo.model.Genre;
 import com.example.demo.model.Movie;
 import com.example.demo.model.Projection;
@@ -99,6 +101,35 @@ class ReservationMapperTest {
     String json = new ObjectMapper().writeValueAsString(detail);
 
     assertFalse(json.contains("password"));
+  }
+
+  @Test
+  void toDomain_shouldMapIdAndProjection() {
+    UUID idProjection = UUID.randomUUID();
+    ReservationInput input =
+        ReservationInput.builder()
+            .idReservation(UUID.randomUUID())
+            .idProjection(idProjection)
+            .build();
+
+    Reservation reservation = reservationMapper.toDomain(input);
+
+    assertEquals(input.getIdReservation(), reservation.getIdReservation());
+    assertEquals(idProjection, reservation.getProjection().getIdProjection());
+  }
+
+  @Test
+  void toDomain_withNullId_shouldGenerateUuid() {
+    ReservationInput input = ReservationInput.builder().idProjection(UUID.randomUUID()).build();
+
+    Reservation reservation = reservationMapper.toDomain(input);
+
+    assertNotNull(reservation.getIdReservation());
+  }
+
+  @Test
+  void toDomain_withNull_shouldReturnNull() {
+    assertNull(reservationMapper.toDomain(null));
   }
 
   @Test

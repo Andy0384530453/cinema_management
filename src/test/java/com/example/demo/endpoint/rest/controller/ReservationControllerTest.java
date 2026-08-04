@@ -1,16 +1,21 @@
 package com.example.demo.endpoint.rest.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.demo.dto.MovieDetail;
 import com.example.demo.dto.ProjectionDetail;
 import com.example.demo.dto.ReservationDetail;
+import com.example.demo.dto.ReservationInput;
 import com.example.demo.dto.RoomDetail;
 import com.example.demo.dto.UserDetail;
+import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.ForbiddenException;
 import com.example.demo.exception.GlobalExceptionHandler;
 import com.example.demo.exception.NotFoundException;
@@ -28,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest({ReservationController.class, GlobalExceptionHandler.class})
@@ -122,6 +128,110 @@ class ReservationControllerTest {
     when(reservationService.findAll()).thenThrow(new RuntimeException("boom"));
 
     mockMvc.perform(get("/reservations")).andExpect(status().isInternalServerError());
+  }
+
+  private String reservationJson(UUID idProjection, UUID idSeat) {
+    return "{\"idReservation\":\""
+        + UUID.randomUUID()
+        + "\",\"idProjection\":\""
+        + idProjection
+        + "\",\"seatIds\":[\""
+        + idSeat
+        + "\"]}";
+  }
+
+  @Test
+  void putReservation_withClientRole_shouldReturn200() throws Exception {
+    UUID userId = UUID.randomUUID();
+    UUID idProjection = reservationDetail.getProjection().getIdProjection();
+    when(securityService.getCurrentUserId()).thenReturn(userId);
+    when(reservationService.save(any(ReservationInput.class), eq(userId)))
+        .thenReturn(reservationDetail);
+
+    mockMvc
+        .perform(
+            put("/reservation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(reservationJson(idProjection, UUID.randomUUID())))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.idReservation").value(reservationDetail.getIdReservation().toString()))
+        .andExpect(jsonPath("$.user.firstName").value("John"))
+        .andExpect(jsonPath("$.projection.movie.title").value("Inception"));
+  }
+
+  @Test
+  void putReservation_withEmployeeRole_shouldReturn200() throws Exception {
+    UUID userId = UUID.randomUUID();
+    when(securityService.getCurrentUserId()).thenReturn(userId);
+    when(reservationService.save(any(ReservationInput.class), eq(userId)))
+        .thenReturn(reservationDetail);
+
+    mockMvc
+        .perform(
+            put("/reservation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(reservationJson(UUID.randomUUID(), UUID.randomUUID())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void putReservation_withoutRole_shouldThrow403() throws Exception {
+    doThrow(new ForbiddenException("No authenticated user"))
+        .when(securityService)
+        .requireAnyRole(UserRole.CLIENT, UserRole.EMPLOYEE, UserRole.MANAGER);
+
+    mockMvc
+        .perform(
+            put("/reservation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(reservationJson(UUID.randomUUID(), UUID.randomUUID())))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void putReservation_withMissingProjection_shouldThrow400() throws Exception {
+    UUID userId = UUID.randomUUID();
+    when(securityService.getCurrentUserId()).thenReturn(userId);
+    when(reservationService.save(any(ReservationInput.class), eq(userId)))
+        .thenThrow(new BadRequestException("Projection is required"));
+
+    mockMvc
+        .perform(
+            put("/reservation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(reservationJson(null, UUID.randomUUID())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void putReservation_withNonExistingProjection_shouldThrow404() throws Exception {
+    UUID userId = UUID.randomUUID();
+    when(securityService.getCurrentUserId()).thenReturn(userId);
+    when(reservationService.save(any(ReservationInput.class), eq(userId)))
+        .thenThrow(new NotFoundException("Projection with id 1 not found"));
+
+    mockMvc
+        .perform(
+            put("/reservation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(reservationJson(UUID.randomUUID(), UUID.randomUUID())))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void putReservation_whenServiceFails_shouldThrow500() throws Exception {
+    UUID userId = UUID.randomUUID();
+    when(securityService.getCurrentUserId()).thenReturn(userId);
+    when(reservationService.save(any(ReservationInput.class), eq(userId)))
+        .thenThrow(new RuntimeException("boom"));
+
+    mockMvc
+        .perform(
+            put("/reservation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(reservationJson(UUID.randomUUID(), UUID.randomUUID())))
+        .andExpect(status().isInternalServerError());
   }
 
   @Test

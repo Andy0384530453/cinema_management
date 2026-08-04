@@ -1,9 +1,11 @@
 package com.example.demo.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.example.demo.dto.ProjectionDetail;
+import com.example.demo.dto.ProjectionInput;
 import com.example.demo.model.Genre;
 import com.example.demo.model.Movie;
 import com.example.demo.model.Projection;
@@ -47,6 +49,48 @@ class ProjectionMapperTest {
     assertEquals(movie.getIdMovie(), detail.getMovie().getIdMovie());
     assertEquals(room.getIdRoom(), detail.getRoom().getIdRoom());
     assertEquals(50, detail.getRoom().getCapacity());
+  }
+
+  @Test
+  void toDomain_shouldMapAllFields() {
+    UUID idMovie = UUID.randomUUID();
+    UUID idRoom = UUID.randomUUID();
+    ProjectionInput input =
+        ProjectionInput.builder()
+            .idProjection(UUID.randomUUID())
+            .datetime(Instant.parse("2026-08-10T20:00:00Z"))
+            .seatPrice(new BigDecimal("12.50"))
+            .idMovie(idMovie)
+            .idRoom(idRoom)
+            .build();
+
+    Projection projection = projectionMapper.toDomain(input);
+
+    assertEquals(input.getIdProjection(), projection.getIdProjection());
+    assertEquals(Instant.parse("2026-08-10T20:00:00Z"), projection.getDatetime());
+    assertEquals(new BigDecimal("12.50"), projection.getSeatPrice());
+    assertEquals(idMovie, projection.getMovie().getIdMovie());
+    assertEquals(idRoom, projection.getRoom().getIdRoom());
+  }
+
+  @Test
+  void toDomain_withNullId_shouldGenerateUuid() {
+    ProjectionInput input =
+        ProjectionInput.builder()
+            .datetime(Instant.parse("2026-08-10T20:00:00Z"))
+            .seatPrice(new BigDecimal("12.50"))
+            .idMovie(UUID.randomUUID())
+            .idRoom(UUID.randomUUID())
+            .build();
+
+    Projection projection = projectionMapper.toDomain(input);
+
+    assertNotNull(projection.getIdProjection());
+  }
+
+  @Test
+  void toDomain_withNull_shouldReturnNull() {
+    assertNull(projectionMapper.toDomain(null));
   }
 
   @Test
