@@ -1,6 +1,8 @@
 package com.example.demo.endpoint.rest.controller;
 
 import com.example.demo.dto.ReservationDetail;
+import com.example.demo.dto.ReservationInput;
+import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.ForbiddenException;
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.model.UserRole;
@@ -12,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +25,22 @@ public class ReservationController {
 
   private final ReservationService reservationService;
   private final SecurityService securityService;
+
+  @PutMapping("/reservation")
+  public ResponseEntity<ReservationDetail> saveReservation(@RequestBody ReservationInput input) {
+    try {
+      securityService.requireAnyRole(UserRole.CLIENT, UserRole.EMPLOYEE, UserRole.MANAGER);
+      return ResponseEntity.ok(reservationService.save(input, securityService.getCurrentUserId()));
+    } catch (ForbiddenException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    } catch (BadRequestException e) {
+      return ResponseEntity.badRequest().build();
+    } catch (NotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
+  }
 
   @GetMapping("/reservations")
   public ResponseEntity<List<ReservationDetail>> getReservations() {

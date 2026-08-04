@@ -31,14 +31,14 @@ métier sont réalisés sur `preprod`.
 - [ ] **Autorisation** — `AuthInterceptor` lisant `Authorization: Bearer <uuid>`,
       `RequestContext` (appelant courant en thread-local),
       `GlobalExceptionHandler` (`401` / `403` / `404`)
-- [ ] **Services** — `ProjectionService` (`@Transactional`), écriture `ReservationService`
-- [ ] **Controllers** — `PUT /reservation`, `PUT /projection`, `GET /projections`
+- [x] **Services** — `ProjectionService` (`@Transactional`), écriture `ReservationService`
+- [x] **Controllers** — `PUT /reservation`, `PUT /projection`, `GET /projections`
 
 ## Gates qualité
 
-- [ ] Tests : matrice de rôles en WebMvcTest, unitaires services (Mockito),
+- [x] Tests : matrice de rôles en WebMvcTest, unitaires services (Mockito),
       intégration FacadeIT, unitaires utilitaires → ≥ 80 % de couverture LIGNES
-      (Jacoco)
+      (Jacoco) — 96,83 % à ce jour
 - [ ] `format.bat` conforme google-java-format (job CI `format`)
 - [ ] Historique de commits propre en conventional commits
       (feat:/fix:/test:/docs:, un changement logique par commit)
