@@ -1,8 +1,6 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,18 +14,15 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "room")
-public class JRoom {
+@Table(name = "seat")
+public class JSeat {
 
-  @Id private UUID idRoom;
+  @Id private UUID idSeat;
 
   @Column(nullable = false)
   private String number;
 
-  @Column(nullable = false)
-  private Integer capacity;
-
-  @OneToMany(mappedBy = "room")
-  @Builder.Default
-  private Set<JSeat> seats = new HashSet<>();
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "id_room")
+  private JRoom room;
 }

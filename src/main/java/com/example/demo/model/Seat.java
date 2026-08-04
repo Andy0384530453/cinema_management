@@ -1,7 +1,5 @@
 package com.example.demo.model;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,11 +12,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Room {
+public class Seat {
 
-  private UUID idRoom;
+  private UUID idSeat;
   private String number;
-  private Integer capacity;
-
-  @Builder.Default private Set<Seat> seats = new HashSet<>();
+  private Room room;
 }

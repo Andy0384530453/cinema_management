@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 
 class JProjectionMapperTest {
   private final JMovieMapper movieMapper = new JMovieMapper();
-  private final JRoomMapper roomMapper = new JRoomMapper();
+  private final JRoomMapper roomMapper = new JRoomMapper(new JSeatMapper());
   private final JProjectionMapper jProjectionMapper =
       new JProjectionMapper(movieMapper, roomMapper);
 

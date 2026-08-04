@@ -2,10 +2,16 @@ package com.example.demo.mapper;
 
 import com.example.demo.entity.JRoom;
 import com.example.demo.model.Room;
+import java.util.HashSet;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class JRoomMapper {
+
+  private final JSeatMapper seatMapper;
 
   public JRoom toJpa(Room room) {
     if (room == null) {
@@ -15,6 +21,10 @@ public class JRoomMapper {
         .idRoom(room.getIdRoom())
         .number(room.getNumber())
         .capacity(room.getCapacity())
+        .seats(
+            room.getSeats() == null
+                ? new HashSet<>()
+                : room.getSeats().stream().map(seatMapper::toJpa).collect(Collectors.toSet()))
         .build();
   }
 
@@ -26,6 +36,10 @@ public class JRoomMapper {
         .idRoom(jRoom.getIdRoom())
         .number(jRoom.getNumber())
         .capacity(jRoom.getCapacity())
+        .seats(
+            jRoom.getSeats() == null
+                ? new HashSet<>()
+                : jRoom.getSeats().stream().map(seatMapper::toDomain).collect(Collectors.toSet()))
         .build();
   }
 }
