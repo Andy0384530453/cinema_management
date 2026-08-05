@@ -13,16 +13,13 @@ import com.example.demo.entity.JProjection;
 import com.example.demo.entity.JReservation;
 import com.example.demo.entity.JSeat;
 import com.example.demo.entity.JUser;
-import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.mapper.JReservationMapper;
 import com.example.demo.mapper.ReservationMapper;
 import com.example.demo.model.Projection;
 import com.example.demo.model.Reservation;
-import com.example.demo.repository.ProjectionRepository;
 import com.example.demo.repository.ReservationRepository;
-import com.example.demo.repository.SeatRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.validator.ReservationValidator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -39,15 +36,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ReservationServiceTest {
   @Mock private ReservationRepository reservationRepository;
 
-  @Mock private ProjectionRepository projectionRepository;
-
-  @Mock private UserRepository userRepository;
-
-  @Mock private SeatRepository seatRepository;
-
   @Mock private ReservationMapper reservationMapper;
 
   @Mock private JReservationMapper jReservationMapper;
+
+  @Mock private ReservationValidator reservationValidator;
 
   @InjectMocks private ReservationService reservationService;
 
@@ -122,9 +115,8 @@ class ReservationServiceTest {
         ReservationDetail.builder().idReservation(saved.getIdReservation()).build();
 
     when(reservationMapper.toDomain(input)).thenReturn(domain);
-    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-    when(projectionRepository.findById(idProjection)).thenReturn(Optional.of(projection));
-    when(seatRepository.findById(seatId)).thenReturn(Optional.of(seat));
+    when(reservationValidator.validate(input, userId))
+        .thenReturn(new ReservationValidator.ReservationDeps(user, projection, Set.of(seat)));
     when(reservationRepository.save(any(JReservation.class))).thenReturn(saved);
     when(jReservationMapper.toDomain(saved)).thenReturn(savedDomain);
     when(reservationMapper.toDetail(savedDomain)).thenReturn(detail);
@@ -141,81 +133,5 @@ class ReservationServiceTest {
         Set.of(seatId),
         captured.getSeats().stream().map(JSeat::getIdSeat).collect(Collectors.toSet()));
     assertNotNull(captured.getCreatedAt());
-  }
-
-  @Test
-  void save_withNullProjection_shouldThrow400() {
-    ReservationInput input = ReservationInput.builder().idReservation(UUID.randomUUID()).build();
-
-    assertThrows(
-        BadRequestException.class, () -> reservationService.save(input, UUID.randomUUID()));
-  }
-
-  @Test
-  void save_withMissingUser_shouldThrow404() {
-    UUID userId = UUID.randomUUID();
-    UUID idProjection = UUID.randomUUID();
-    ReservationInput input =
-        ReservationInput.builder()
-            .idReservation(UUID.randomUUID())
-            .idProjection(idProjection)
-            .build();
-    Reservation domain =
-        Reservation.builder()
-            .idReservation(input.getIdReservation())
-            .projection(Projection.builder().idProjection(idProjection).build())
-            .build();
-    when(reservationMapper.toDomain(input)).thenReturn(domain);
-    when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-    assertThrows(NotFoundException.class, () -> reservationService.save(input, userId));
-  }
-
-  @Test
-  void save_withMissingProjection_shouldThrow404() {
-    UUID userId = UUID.randomUUID();
-    UUID idProjection = UUID.randomUUID();
-    ReservationInput input =
-        ReservationInput.builder()
-            .idReservation(UUID.randomUUID())
-            .idProjection(idProjection)
-            .build();
-    Reservation domain =
-        Reservation.builder()
-            .idReservation(input.getIdReservation())
-            .projection(Projection.builder().idProjection(idProjection).build())
-            .build();
-    when(reservationMapper.toDomain(input)).thenReturn(domain);
-    when(userRepository.findById(userId))
-        .thenReturn(Optional.of(JUser.builder().idUser(userId).build()));
-    when(projectionRepository.findById(idProjection)).thenReturn(Optional.empty());
-
-    assertThrows(NotFoundException.class, () -> reservationService.save(input, userId));
-  }
-
-  @Test
-  void save_withMissingSeat_shouldThrow404() {
-    UUID userId = UUID.randomUUID();
-    UUID idProjection = UUID.randomUUID();
-    UUID seatId = UUID.randomUUID();
-    ReservationInput input =
-        ReservationInput.builder()
-            .idReservation(UUID.randomUUID())
-            .idProjection(idProjection)
-            .seatIds(Set.of(seatId))
-            .build();
-    Reservation domain =
-        Reservation.builder()
-            .idReservation(input.getIdReservation())
-            .projection(Projection.builder().idProjection(idProjection).build())
-            .build();
-    when(reservationMapper.toDomain(input)).thenReturn(domain);
-    when(userRepository.findById(userId))
-        .thenReturn(Optional.of(JUser.builder().idUser(userId).build()));
-    when(projectionRepository.findById(idProjection))
-        .thenReturn(Optional.of(JProjection.builder().idProjection(idProjection).build()));
-    when(seatRepository.findById(seatId)).thenReturn(Optional.empty());
-
-    assertThrows(NotFoundException.class, () -> reservationService.save(input, userId));
   }
 }

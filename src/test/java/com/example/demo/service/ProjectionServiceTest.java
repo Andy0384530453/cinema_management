@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -10,20 +9,16 @@ import com.example.demo.dto.ProjectionInput;
 import com.example.demo.entity.JMovie;
 import com.example.demo.entity.JProjection;
 import com.example.demo.entity.JRoom;
-import com.example.demo.exception.BadRequestException;
-import com.example.demo.exception.NotFoundException;
 import com.example.demo.mapper.JProjectionMapper;
 import com.example.demo.mapper.ProjectionMapper;
 import com.example.demo.model.Movie;
 import com.example.demo.model.Projection;
 import com.example.demo.model.Room;
-import com.example.demo.repository.MovieRepository;
 import com.example.demo.repository.ProjectionRepository;
-import com.example.demo.repository.RoomRepository;
+import com.example.demo.validator.ProjectionValidator;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,13 +30,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProjectionServiceTest {
   @Mock private ProjectionRepository projectionRepository;
 
-  @Mock private MovieRepository movieRepository;
-
-  @Mock private RoomRepository roomRepository;
-
   @Mock private ProjectionMapper projectionMapper;
 
   @Mock private JProjectionMapper jProjectionMapper;
+
+  @Mock private ProjectionValidator projectionValidator;
 
   @InjectMocks private ProjectionService projectionService;
 
@@ -76,8 +69,8 @@ class ProjectionServiceTest {
 
     when(projectionMapper.toDomain(input)).thenReturn(domain);
     when(jProjectionMapper.toJpa(domain)).thenReturn(jpa);
-    when(movieRepository.findById(input.getIdMovie())).thenReturn(Optional.of(movie));
-    when(roomRepository.findById(input.getIdRoom())).thenReturn(Optional.of(room));
+    when(projectionValidator.validate(input))
+        .thenReturn(new ProjectionValidator.ProjectionDeps(movie, room));
     when(projectionRepository.save(jpa)).thenReturn(saved);
     when(jProjectionMapper.toDomain(saved)).thenReturn(savedDomain);
     when(projectionMapper.toDetail(savedDomain)).thenReturn(detail);
@@ -88,48 +81,6 @@ class ProjectionServiceTest {
     assertEquals(movie, jpa.getMovie());
     assertEquals(room, jpa.getRoom());
     verify(projectionRepository).save(jpa);
-  }
-
-  @Test
-  void save_withMissingMovie_shouldThrow404() {
-    ProjectionInput input = validInput();
-    Projection domain =
-        Projection.builder()
-            .idProjection(input.getIdProjection())
-            .movie(Movie.builder().idMovie(input.getIdMovie()).build())
-            .room(Room.builder().idRoom(input.getIdRoom()).build())
-            .build();
-    when(projectionMapper.toDomain(input)).thenReturn(domain);
-    when(jProjectionMapper.toJpa(domain)).thenReturn(JProjection.builder().build());
-    when(movieRepository.findById(input.getIdMovie())).thenReturn(Optional.empty());
-
-    assertThrows(NotFoundException.class, () -> projectionService.save(input));
-  }
-
-  @Test
-  void save_withMissingRoom_shouldThrow404() {
-    ProjectionInput input = validInput();
-    Projection domain =
-        Projection.builder()
-            .idProjection(input.getIdProjection())
-            .movie(Movie.builder().idMovie(input.getIdMovie()).build())
-            .room(Room.builder().idRoom(input.getIdRoom()).build())
-            .build();
-    when(projectionMapper.toDomain(input)).thenReturn(domain);
-    when(jProjectionMapper.toJpa(domain)).thenReturn(JProjection.builder().build());
-    when(movieRepository.findById(input.getIdMovie()))
-        .thenReturn(Optional.of(JMovie.builder().idMovie(input.getIdMovie()).build()));
-    when(roomRepository.findById(input.getIdRoom())).thenReturn(Optional.empty());
-
-    assertThrows(NotFoundException.class, () -> projectionService.save(input));
-  }
-
-  @Test
-  void save_withNullDatetime_shouldThrow400() {
-    ProjectionInput input = validInput();
-    input.setDatetime(null);
-
-    assertThrows(BadRequestException.class, () -> projectionService.save(input));
   }
 
   @Test
