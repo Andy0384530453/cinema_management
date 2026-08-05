@@ -1,19 +1,18 @@
 package com.example.demo.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.demo.dto.MovieDetail;
 import com.example.demo.dto.MovieInput;
 import com.example.demo.entity.JMovie;
-import com.example.demo.exception.BadRequestException;
 import com.example.demo.mapper.JMovieMapper;
 import com.example.demo.mapper.MovieMapper;
 import com.example.demo.model.Genre;
 import com.example.demo.model.Movie;
 import com.example.demo.repository.MovieRepository;
+import com.example.demo.validator.MovieValidator;
 import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -30,6 +29,8 @@ class MovieServiceTest {
   @Mock private MovieMapper movieMapper;
 
   @Mock private JMovieMapper jMovieMapper;
+
+  @Mock private MovieValidator movieValidator;
 
   @InjectMocks private MovieService movieService;
 
@@ -61,30 +62,7 @@ class MovieServiceTest {
     MovieDetail result = movieService.save(input);
 
     assertEquals(detail, result);
+    verify(movieValidator).validate(input);
     verify(movieRepository).save(jpa);
-  }
-
-  @Test
-  void save_withBlankTitle_shouldThrow400() {
-    MovieInput input = validInput();
-    input.setTitle("   ");
-
-    assertThrows(BadRequestException.class, () -> movieService.save(input));
-  }
-
-  @Test
-  void save_withNullGenre_shouldThrow400() {
-    MovieInput input = validInput();
-    input.setGenre(null);
-
-    assertThrows(BadRequestException.class, () -> movieService.save(input));
-  }
-
-  @Test
-  void save_withNullDuration_shouldThrow400() {
-    MovieInput input = validInput();
-    input.setDuration(null);
-
-    assertThrows(BadRequestException.class, () -> movieService.save(input));
   }
 }
